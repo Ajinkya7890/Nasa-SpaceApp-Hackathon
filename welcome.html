@@ -74,18 +74,424 @@
   </head>
   <body>
     
-    <video autoplay loop muted plays-inline class="back_video">
+    <video autoplay loop muted playsinline class="back_video">
       <source src="https://cdn.pixabay.com/video/2024/10/12/236105_large.mp4" type="video/mp4" />
     </video>
     <header>
-      <h2 class="logo">Tempest</h2>
-      <nav class="navigation">
-        <a href="#">Home</a>
+      <h2 class="logo">🚀 Tempest</h2>
+      <button class="hamburger" id="hamburger">☰</button>
+      <nav class="navigation" id="navigation">
+        <a href="/welcome">Home</a>
         <a href="/earth/about.html">About Us</a>
-        <!-- <a href="#">Services</a> -->
+        <a href="/orrery">Solar System</a>
         <a href="/earth/contactus.html">Contact</a>
+        <a href="#" id="logoutBtn" style="color: #ff6b6b;">Logout</a>
       </nav>
     </header>
+    
+    <div class="welcome-content">
+      <h1>Welcome to NASA Hackathon</h1>
+      <p>Explore the wonders of our Solar System</p>
+      
+      <div class="button-container">
+        <a href="/orrery" class="btn btn-primary">
+          <span class="btn-icon">🌍</span>
+          <span class="btn-text">Explore Orrery</span>
+        </a>
+        
+        <a href="/earth/about.html" class="btn btn-success">
+          <span class="btn-icon">ℹ️</span>
+          <span class="btn-text">Learn More</span>
+        </a>
+        
+        <a href="/earth/contactus.html" class="btn btn-warning">
+          <span class="btn-icon">📞</span>
+          <span class="btn-text">Contact Us</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div class="modal" id="logoutModal">
+      <div class="modal-content">
+        <h2>Confirm Logout</h2>
+        <p>Are you sure you want to logout?</p>
+        <div class="modal-buttons">
+          <button class="btn-modal btn-cancel" onclick="closeLogoutModal()">Cancel</button>
+          <button class="btn-modal btn-confirm" onclick="confirmLogout()">Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap');
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-size: cover;
+        background-position: center;
+        overflow-x: hidden;
+      }
+      .back_video {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        z-index: -1;
+        min-width: 100%;
+        min-height: 100%;
+        object-fit: cover;
+      }
+      header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 20px 50px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 99;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+      }
+      .logo {
+        font-size: 2em;
+        color: #fff;
+        user-select: none;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+      .hamburger {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.8em;
+        color: white;
+        cursor: pointer;
+        z-index: 100;
+      }
+      .navigation {
+        display: flex;
+        gap: 30px;
+        align-items: center;
+      }
+      .navigation a {
+        position: relative;
+        font-size: 1.1em;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+      .navigation a::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -6px;
+        width: 100%;
+        height: 3px;
+        background: #fff;
+        border-radius: 5px;
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.5s;
+      }
+      .navigation a:hover::after {
+        transform: scaleX(1);
+      }
+      .navigation a:hover {
+        color: #ffd700;
+      }
+
+      .welcome-content {
+        text-align: center;
+        color: white;
+        margin-top: 120px;
+        z-index: 10;
+        position: relative;
+        padding: 20px;
+      }
+      .welcome-content h1 {
+        font-size: 3.5em;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+        animation: slideDown 0.6s ease-out;
+      }
+      .welcome-content p {
+        font-size: 1.3em;
+        margin-bottom: 40px;
+        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+        animation: slideUp 0.6s ease-out 0.2s both;
+      }
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .button-container {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 40px;
+        animation: slideUp 0.6s ease-out 0.4s both;
+      }
+      .btn {
+        padding: 15px 30px;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 1.1em;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        border: none;
+        font-weight: 600;
+        min-width: 200px;
+        justify-content: center;
+      }
+      .btn-icon {
+        font-size: 1.4em;
+      }
+      .btn-text {
+        display: inline;
+      }
+      .btn-primary {
+        background-color: #007bff;
+        color: white;
+      }
+      .btn-primary:hover {
+        background-color: #0056b3;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 123, 255, 0.4);
+      }
+      .btn-success {
+        background-color: #28a745;
+        color: white;
+      }
+      .btn-success:hover {
+        background-color: #1e7e34;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(40, 167, 69, 0.4);
+      }
+      .btn-warning {
+        background-color: #ffc107;
+        color: #333;
+      }
+      .btn-warning:hover {
+        background-color: #e0a800;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(255, 193, 7, 0.4);
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        align-items: center;
+        justify-content: center;
+      }
+      .modal.show {
+        display: flex;
+      }
+      .modal-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px;
+        border-radius: 15px;
+        text-align: center;
+        color: white;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        animation: popIn 0.3s ease-out;
+        max-width: 400px;
+        width: 90%;
+      }
+      @keyframes popIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .modal-content h2 {
+        margin-bottom: 15px;
+        font-size: 1.8em;
+      }
+      .modal-content p {
+        margin-bottom: 30px;
+        font-size: 1.1em;
+      }
+      .modal-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+      }
+      .btn-modal {
+        padding: 10px 25px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        min-width: 120px;
+      }
+      .btn-cancel {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid white;
+      }
+      .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+      .btn-confirm {
+        background: #ff6b6b;
+        color: white;
+      }
+      .btn-confirm:hover {
+        background: #ee5a52;
+        transform: translateY(-2px);
+      }
+
+      /* Mobile Responsive */
+      @media (max-width: 768px) {
+        header {
+          padding: 15px 20px;
+        }
+        .hamburger {
+          display: block;
+        }
+        .navigation {
+          position: absolute;
+          top: 60px;
+          right: -250px;
+          flex-direction: column;
+          background: rgba(0, 0, 0, 0.9);
+          width: 250px;
+          padding: 20px;
+          border-radius: 10px;
+          gap: 15px;
+          transition: right 0.3s ease;
+          z-index: 98;
+        }
+        .navigation.show {
+          right: 20px;
+        }
+        .navigation a {
+          text-align: left;
+          font-size: 1em;
+        }
+        .logo {
+          font-size: 1.5em;
+        }
+        .welcome-content {
+          margin-top: 100px;
+        }
+        .welcome-content h1 {
+          font-size: 2em;
+        }
+        .welcome-content p {
+          font-size: 1em;
+        }
+        .button-container {
+          flex-direction: column;
+          gap: 15px;
+        }
+        .btn {
+          width: 100%;
+          min-width: auto;
+        }
+        .btn-text {
+          display: block;
+        }
+      }
+      @media (max-width: 480px) {
+        .welcome-content h1 {
+          font-size: 1.5em;
+        }
+        .btn-icon {
+          font-size: 1.2em;
+        }
+        .modal-content {
+          padding: 30px 20px;
+        }
+      }
+    </style>
+
+    <script>
+      // Mobile hamburger menu
+      const hamburger = document.getElementById('hamburger');
+      const navigation = document.getElementById('navigation');
+
+      hamburger.addEventListener('click', function() {
+        navigation.classList.toggle('show');
+      });
+
+      // Close menu when link is clicked
+      document.querySelectorAll('.navigation a').forEach(link => {
+        link.addEventListener('click', function() {
+          navigation.classList.remove('show');
+        });
+      });
+
+      // Logout functionality
+      const logoutBtn = document.getElementById('logoutBtn');
+      const logoutModal = document.getElementById('logoutModal');
+
+      logoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        logoutModal.classList.add('show');
+      });
+
+      function closeLogoutModal() {
+        logoutModal.classList.remove('show');
+      }
+
+      function confirmLogout() {
+        window.location.href = '/';
+      }
+
+      // Close modal when clicking outside
+      logoutModal.addEventListener('click', function(e) {
+        if (e.target === logoutModal) {
+          closeLogoutModal();
+        }
+      });
+    </script>
     
   </body>
 </html>

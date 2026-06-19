@@ -3,7 +3,200 @@ import * as THREE from "https://unpkg.com/three@0.127.0/build/three.module.js";
 import { OrbitControls } from "https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js";
 
 import { OBJLoader } from "https://unpkg.com/three@0.127.0/examples/jsm/loaders/OBJLoader.js";
-import getAsteroidBelt from "./getAsteroidBelt.js";
+import getAsteroidBelt from "/orrery-assets/getAsteroidBelt.js";
+
+// ============================================
+// GLOBAL STATE AND CONFIGURATION
+// ============================================
+let animationPaused = false;
+let selectedPlanet = null;
+let showLabels = true;
+let showOrbits = true;
+let animationSpeed = 1;
+const planetLabels = {};
+
+// Planet information database
+const planetDatabase = {
+    sun: {
+        name: "Sun",
+        diameter: "1,391,000 km",
+        distance: "Center of Solar System",
+        period: "—",
+        rotation: "25.4 days",
+        moons: "0",
+        description: "The Sun is a G-type main-sequence star at the center of the Solar System. It contains 99.86% of the system's mass and is composed primarily of hydrogen and helium."
+    },
+    mercury: {
+        name: "Mercury",
+        diameter: "4,879 km",
+        distance: "57.9 million km",
+        period: "88 days",
+        rotation: "58.6 days",
+        moons: "0",
+        description: "Mercury is the smallest planet in our Solar System and the closest to the Sun. Despite being closest to the Sun, it's not the hottest planet."
+    },
+    venus: {
+        name: "Venus",
+        diameter: "12,104 km",
+        distance: "108.2 million km",
+        period: "225 days",
+        rotation: "243 days (retrograde)",
+        moons: "0",
+        description: "Venus is the hottest planet in the Solar System with surface temperatures reaching 465°C. It has a thick atmosphere composed mainly of carbon dioxide."
+    },
+    earth: {
+        name: "Earth",
+        diameter: "12,742 km",
+        distance: "149.6 million km",
+        period: "365.25 days",
+        rotation: "24 hours",
+        moons: "1",
+        description: "Earth is our home planet and the only known planet to harbor life. It has a diverse biosphere and one natural satellite, the Moon."
+    },
+    mars: {
+        name: "Mars",
+        diameter: "6,779 km",
+        distance: "227.9 million km",
+        period: "687 days",
+        rotation: "24.6 hours",
+        moons: "2",
+        description: "Mars is known as the Red Planet due to iron oxide on its surface. It's the fourth planet from the Sun and has been a focus of exploration missions."
+    },
+    jupiter: {
+        name: "Jupiter",
+        diameter: "139,820 km",
+        distance: "778.5 million km",
+        period: "12 years",
+        rotation: "10 hours",
+        moons: "79+",
+        description: "Jupiter is the largest planet in the Solar System. It's a gas giant with a Great Red Spot storm larger than Earth and a strong magnetic field."
+    },
+    saturn: {
+        name: "Saturn",
+        diameter: "116,460 km",
+        distance: "1,434 million km",
+        period: "29 years",
+        rotation: "10.7 hours",
+        moons: "83+",
+        description: "Saturn is famous for its spectacular ring system composed of ice and rock particles. It's the second-largest planet and also a gas giant."
+    },
+    uranus: {
+        name: "Uranus",
+        diameter: "50,724 km",
+        distance: "2,873 million km",
+        period: "84 years",
+        rotation: "17 hours",
+        moons: "27+",
+        description: "Uranus is an ice giant that rotates on its side. It has a faint ring system and appears as a featureless blue-green sphere."
+    },
+    neptune: {
+        name: "Neptune",
+        diameter: "49,244 km",
+        distance: "4,495 million km",
+        period: "165 years",
+        rotation: "16 hours",
+        moons: "14+",
+        description: "Neptune is the windiest planet in the Solar System. It's an ice giant with deep blue color caused by methane in its atmosphere."
+    },
+    pluto: {
+        name: "Pluto",
+        diameter: "2,376 km",
+        distance: "5,906 million km",
+        period: "248 years",
+        rotation: "6.4 days",
+        moons: "5",
+        description: "Pluto is a dwarf planet and plutino. Discovered in 1930, it was reclassified in 2006. It has a large moon, Charon, relatively similar in size."
+    }
+};
+
+// Helper functions for UI
+function updateInfoPanel(planet) {
+    if (!planet || !planet.name) return;
+    
+    const info = planetDatabase[planet.name.toLowerCase()];
+    if (!info) return;
+    
+    document.getElementById('info-planet-name').textContent = info.name;
+    document.getElementById('info-diameter').textContent = info.diameter;
+    document.getElementById('info-distance').textContent = info.distance;
+    document.getElementById('info-period').textContent = info.period;
+    document.getElementById('info-rotation').textContent = info.rotation;
+    document.getElementById('info-moons').textContent = info.moons;
+    document.getElementById('info-description').textContent = info.description;
+    
+    document.getElementById('info-panel').classList.add('active');
+}
+
+function createPlanetLabel(planet, name) {
+    // Create a canvas texture for the label
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    
+    ctx.font = 'Bold 40px Arial';
+    ctx.fillStyle = '#64c8ff';
+    ctx.textAlign = 'center';
+    ctx.fillText(name, 128, 45);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+    const sprite = new THREE.Sprite(spriteMaterial);
+    sprite.scale.set(15, 4, 1);
+    
+    planet.add(sprite);
+    planetLabels[name] = sprite;
+}
+
+function toggleLabels() {
+    showLabels = !showLabels;
+    Object.values(planetLabels).forEach(label => {
+        label.visible = showLabels;
+    });
+    document.getElementById('toggle-labels-btn').classList.toggle('active', showLabels);
+}
+
+function toggleOrbits() {
+    showOrbits = !showOrbits;
+    if (path_of_planets) {
+        path_of_planets.forEach(orbit => {
+            orbit.visible = showOrbits;
+        });
+    }
+    document.getElementById('toggle-orbits-btn').classList.toggle('active', showOrbits);
+}
+
+function setupPlanetList() {
+    const planetNames = Object.keys(planetDatabase);
+    const planetList = document.getElementById('planet-list');
+    
+    planetNames.forEach(name => {
+        const item = document.createElement('div');
+        item.className = 'planet-item';
+        item.textContent = planetDatabase[name].name;
+        item.onclick = () => {
+            document.querySelectorAll('.planet-item').forEach(el => el.classList.remove('selected'));
+            item.classList.add('selected');
+            const planet = planets.find(p => p.name && p.name.toLowerCase() === name);
+            if (planet) {
+                selectedPlanet = planet;
+                updateInfoPanel(planet);
+            }
+        };
+        planetList.appendChild(item);
+    });
+    planetList.style.display = 'block';
+}
+
+// Hide loading screen when content loads
+window.addEventListener('load', function() {
+    const loading = document.getElementById('loading');
+    if (loading) {
+        setTimeout(() => {
+            loading.style.display = 'none';
+        }, 1000);
+    }
+});
 
 
 // Fetch JSON data
@@ -89,32 +282,32 @@ const textureLoader = new THREE.TextureLoader();
 
 //////////////////////////////////////
 //import all texture
-const sunTexture = textureLoader.load("image/8k_sun.jpg");
-const mercuryTexture = textureLoader.load("image/8k_mercury.jpg");
-const venusTexture = textureLoader.load("image/8k_venus_surface.jpg");
-const earthTexture = textureLoader.load("image/earth.jpg");
-const marsTexture = textureLoader.load("image/8k_mars.jpg");
-const jupiterTexture = textureLoader.load("image/8k_jupiter.jpg");
-const saturnTexture = textureLoader.load("image/8k_saturn.jpg");
-const uranusTexture = textureLoader.load("image/2k_uranus.jpg");
-const neptuneTexture = textureLoader.load("image/2k_neptune.jpg");
-const plutoTexture = textureLoader.load("image/pluto.jpg");
-const saturnRingTexture = textureLoader.load("image/saturn_ring.png");
-const uranusRingTexture = textureLoader.load("image/uranus_ring.png");
-const earth_moonTexture = textureLoader.load("image/8k_moon.jpg");
-const mars_PhobosTexture = textureLoader.load("image/phobos_mars1.jpg");
-const mars_DeimosTexture = textureLoader.load("image/Deimos_mars2.jpg");
-const jupiter_GanymedeTexture = textureLoader.load("image/Jupiter_Ganymede.jpg");
-const jupiter_CallistaTexture = textureLoader.load("image/Jupiter_Callisto.jpg");
-const jupiter_IOTexture = textureLoader.load("image/Jupiter_IO.webp");
-const jupiter_EuropaTexture = textureLoader.load("image/Jupiter_Europa.jpg");
-const saturn_TitanTexture = textureLoader.load("image/Saturn_titan.jpg");
-const saturn_EnceladusTexture = textureLoader.load("image/Saturn_Enceladus.jpg");
-const Uranus_MirandaTexture = textureLoader.load("image/Uranus_Miranda.jpg");
-const Uranus_ArielTexture = textureLoader.load("image/Uranus_Ariel.jpg");
-const Neptune_TritonTexture = textureLoader.load("image/Neptune_triton.jpg");
-const Neptune_GalateaTexture = textureLoader.load("image/Neptune_Galatea.jpg");
-const pluto_charonTexture = textureLoader.load("image/pluto_CharonTexture.jpg");
+const sunTexture = textureLoader.load("/orrery-assets/image/8k_sun.jpg");
+const mercuryTexture = textureLoader.load("/orrery-assets/image/8k_mercury.jpg");
+const venusTexture = textureLoader.load("/orrery-assets/image/8k_venus_surface.jpg");
+const earthTexture = textureLoader.load("/orrery-assets/image/earth.jpg");
+const marsTexture = textureLoader.load("/orrery-assets/image/8k_mars.jpg");
+const jupiterTexture = textureLoader.load("/orrery-assets/image/8k_jupiter.jpg");
+const saturnTexture = textureLoader.load("/orrery-assets/image/8k_saturn.jpg");
+const uranusTexture = textureLoader.load("/orrery-assets/image/2k_uranus.jpg");
+const neptuneTexture = textureLoader.load("/orrery-assets/image/2k_neptune.jpg");
+const plutoTexture = textureLoader.load("/orrery-assets/image/pluto.jpg");
+const saturnRingTexture = textureLoader.load("/orrery-assets/image/saturn_ring.png");
+const uranusRingTexture = textureLoader.load("/orrery-assets/image/uranus_ring.png");
+const earth_moonTexture = textureLoader.load("/orrery-assets/image/8k_moon.jpg");
+const mars_PhobosTexture = textureLoader.load("/orrery-assets/image/phobos_mars1.jpg");
+const mars_DeimosTexture = textureLoader.load("/orrery-assets/image/Deimos_mars2.jpg");
+const jupiter_GanymedeTexture = textureLoader.load("/orrery-assets/image/Jupiter_Ganymede.jpg");
+const jupiter_CallistaTexture = textureLoader.load("/orrery-assets/image/Jupiter_Callisto.jpg");
+const jupiter_IOTexture = textureLoader.load("/orrery-assets/image/Jupiter_IO.webp");
+const jupiter_EuropaTexture = textureLoader.load("/orrery-assets/image/Jupiter_Europa.jpg");
+const saturn_TitanTexture = textureLoader.load("/orrery-assets/image/Saturn_titan.jpg");
+const saturn_EnceladusTexture = textureLoader.load("/orrery-assets/image/Saturn_Enceladus.jpg");
+const Uranus_MirandaTexture = textureLoader.load("/orrery-assets/image/Uranus_Miranda.jpg");
+const Uranus_ArielTexture = textureLoader.load("/orrery-assets/image/Uranus_Ariel.jpg");
+const Neptune_TritonTexture = textureLoader.load("/orrery-assets/image/Neptune_triton.jpg");
+const Neptune_GalateaTexture = textureLoader.load("/orrery-assets/image/Neptune_Galatea.jpg");
+const pluto_charonTexture = textureLoader.load("/orrery-assets/image/pluto_CharonTexture.jpg");
 
 
 //////////////////////////////////////
@@ -124,7 +317,7 @@ const scene = new THREE.Scene();
 
 
 //background
-const backgroundTexture = textureLoader.load("media/stars-galaxy-3840x2560-10307.jpg");
+const backgroundTexture = textureLoader.load("/orrery-assets/media/stars-galaxy-3840x2560-10307.jpg");
 scene.background = backgroundTexture;
 
 
@@ -338,6 +531,125 @@ const planets = [
 
 ];
 
+// ============================================
+// ADD PLANET NAMES AND SETUP UI
+// ============================================
+const planetNames = ['mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto'];
+planets.forEach((planet, index) => {
+    if (index < planetNames.length) {
+        planet.name = planetNames[index];
+        const displayName = planetDatabase[planetNames[index]].name;
+        createPlanetLabel(planet.planet, displayName);
+    }
+});
+
+// Initialize planet list
+setupPlanetList();
+
+// ============================================
+// EVENT LISTENERS FOR UI CONTROLS
+// ============================================
+
+// Pause button
+document.getElementById('pause-btn').addEventListener('click', () => {
+    animationPaused = !animationPaused;
+    const btn = document.getElementById('pause-btn');
+    if (animationPaused) {
+        btn.textContent = '▶ Resume Animation';
+        btn.classList.add('active');
+    } else {
+        btn.textContent = '⏸ Pause Animation';
+        btn.classList.remove('active');
+    }
+});
+
+// Reset button
+document.getElementById('reset-btn').addEventListener('click', () => {
+    camera.position.set(-50, 90, 150);
+    orbit.target.set(0, 0, 0);
+    orbit.update();
+});
+
+// Info button
+document.getElementById('info-btn').addEventListener('click', () => {
+    if (selectedPlanet && selectedPlanet.name) {
+        updateInfoPanel(selectedPlanet);
+    } else {
+        alert('Please select a planet from the list first!');
+    }
+});
+
+// Zoom to selection button
+document.getElementById('zoom-btn').addEventListener('click', () => {
+    if (selectedPlanet && selectedPlanet.planetObj) {
+        const position = selectedPlanet.planetObj.position;
+        const distance = 40;
+        camera.position.set(
+            position.x + distance,
+            position.y + distance,
+            position.z + distance
+        );
+        orbit.target.copy(position);
+        orbit.update();
+    } else {
+        alert('Please select a planet first!');
+    }
+});
+
+// Toggle labels button
+document.getElementById('toggle-labels-btn').addEventListener('click', toggleLabels);
+
+// Toggle orbits button
+document.getElementById('toggle-orbits-btn').addEventListener('click', toggleOrbits);
+
+// Speed slider
+document.getElementById('speed-slider').addEventListener('input', (e) => {
+    animationSpeed = parseFloat(e.target.value);
+    document.getElementById('speed-value').textContent = animationSpeed.toFixed(1) + 'x';
+});
+
+// Search box
+document.getElementById('search-box').addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    const items = document.querySelectorAll('.planet-item');
+    items.forEach(item => {
+        const planetName = item.textContent.toLowerCase();
+        if (planetName.includes(query)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
+
+// Close info panel button
+document.getElementById('close-info-btn').addEventListener('click', () => {
+    document.getElementById('info-panel').classList.remove('active');
+});
+
+// ============================================
+// KEYBOARD SHORTCUTS
+// ============================================
+document.addEventListener('keydown', (e) => {
+    switch(e.key) {
+        case ' ':
+            e.preventDefault();
+            document.getElementById('pause-btn').click();
+            break;
+        case 'r':
+        case 'R':
+            document.getElementById('reset-btn').click();
+            break;
+        case 'l':
+        case 'L':
+            toggleLabels();
+            break;
+        case 'o':
+        case 'O':
+            toggleOrbits();
+            break;
+    }
+});
 
 // Ensure you add the moon orbit object to the planet object
 planets[2].planetObj.add(planets[2].moons[0].moonOrbit); // Adding Earth's moon to Earth
@@ -518,33 +830,31 @@ loader.load("rocks/Rock3.obj", function (object) {
 const animate = () => {
     requestAnimationFrame(animate);
     
-    planets.forEach((planet) => {
-        // Rotate planets
-        planet.planet.rotation.y += planet.self_rotation_speed * options.speed;
-        planet.planetObj.rotation.y += planet.rotaing_speed_around_sun * options.speed;
+    // Only update animations if not paused
+    if (!animationPaused) {
+        planets.forEach((planet) => {
+            // Rotate planets
+            planet.planet.rotation.y += planet.self_rotation_speed * animationSpeed;
+            planet.planetObj.rotation.y += planet.rotaing_speed_around_sun * animationSpeed;
 
-        // Check if the planet has moons
-        if (planet.moons && planet.moons.length > 0) {
+            // Check if the planet has moons
+            if (planet.moons && planet.moons.length > 0) {
+                planet.moons.forEach((moon) => {
+                    moon.moon.rotation.y += 0.01 * animationSpeed;
+                });
+            }
+        });
+        if (asteroidBelt) {
+            asteroidBelt.rotation.y += 0.001; // Rotate the entire belt
 
-            planet.moons.forEach((moon) => {
-
-                moon.moon.rotation.y += 0.01 * options.speed;
-
+            asteroidBelt.children.forEach(rock => {
+                rock.rotation.x = 0.002; // Rotate each rock
+                rock.rotation.y = 0.002;
             });
         }
-    });
-    if (asteroidBelt) {
-        asteroidBelt.rotation.y += 0.001; // Rotate the entire belt
-
-        asteroidBelt.children.forEach(rock => {
-            rock.rotation.x = 0.002; // Rotate each rock
-            rock.rotation.y = 0.002;
-        });
     }
-
-    updatePlanetName(); // Update planet name on each frame
-    orbit.update();
     
+    orbit.update();
     renderer.render(scene, camera);
 };
 

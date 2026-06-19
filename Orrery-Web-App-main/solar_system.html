@@ -5,69 +5,472 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       overflow: hidden;
-      margin: 0px;
+      font-family: 'Poppins', sans-serif;
+      background: #000;
     }
-   
+
+    /* Loading Screen */
+    #loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      text-align: center;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      animation: slideUp 0.5s ease;
+    }
+
+    #loading p {
+      margin: 10px 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    /* Control Panel - Top Left */
+    #control-panel {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+      background: rgba(20, 20, 40, 0.95);
+      padding: 20px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(100, 200, 255, 0.3);
+      min-width: 250px;
+      animation: slideInLeft 0.6s ease;
+    }
+
+    .control-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #64c8ff;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .control-group {
+      margin-bottom: 15px;
+    }
+
+    .control-label {
+      font-size: 12px;
+      color: #aaa;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .control-button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      font-size: 13px;
+    }
+
+    .control-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .control-button:active {
+      transform: translateY(0);
+    }
+
+    .control-button.active {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+    .control-slider {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(100, 200, 255, 0.2);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .control-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #64c8ff;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(100, 200, 255, 0.5);
+    }
+
+    .control-slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #64c8ff;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 10px rgba(100, 200, 255, 0.5);
+    }
+
+    .slider-value {
+      color: #64c8ff;
+      font-size: 12px;
+      margin-top: 5px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* Search Box */
+    #search-box {
+      width: 100%;
+      padding: 10px;
+      background: rgba(100, 200, 255, 0.1);
+      border: 1px solid rgba(100, 200, 255, 0.3);
+      border-radius: 8px;
+      color: white;
+      margin-bottom: 15px;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+
+    #search-box:focus {
+      outline: none;
+      background: rgba(100, 200, 255, 0.2);
+      border-color: #64c8ff;
+      box-shadow: 0 0 10px rgba(100, 200, 255, 0.3);
+    }
+
+    /* Planet List */
+    #planet-list {
+      max-height: 300px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .planet-item {
+      padding: 10px;
+      margin: 5px 0;
+      background: rgba(100, 200, 255, 0.1);
+      border: 1px solid rgba(100, 200, 255, 0.2);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 13px;
+      color: #ccc;
+    }
+
+    .planet-item:hover {
+      background: rgba(100, 200, 255, 0.2);
+      border-color: #64c8ff;
+      color: #64c8ff;
+    }
+
+    .planet-item.selected {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: #64c8ff;
+      color: white;
+    }
+
+    /* Info Panel - Right Side */
+    #info-panel {
+      position: fixed;
+      right: -400px;
+      top: 0;
+      width: 380px;
+      height: 100vh;
+      background: rgba(20, 20, 40, 0.98);
+      backdrop-filter: blur(10px);
+      border-left: 2px solid rgba(100, 200, 255, 0.3);
+      padding: 30px 20px;
+      overflow-y: auto;
+      z-index: 90;
+      transition: right 0.4s ease;
+    }
+
+    #info-panel.active {
+      right: 0;
+    }
+
+    .info-header {
+      font-size: 24px;
+      font-weight: 700;
+      color: #64c8ff;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #64c8ff;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .close-btn:hover {
+      color: #ff6b6b;
+      transform: rotate(90deg);
+    }
+
+    .info-section {
+      margin-bottom: 25px;
+    }
+
+    .info-label {
+      font-size: 11px;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .info-value {
+      font-size: 18px;
+      color: #64c8ff;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .info-description {
+      font-size: 13px;
+      color: #bbb;
+      line-height: 1.6;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(100, 200, 255, 0.2);
+    }
+
+    /* Help Panel - Bottom Right */
+    #help-panel {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(20, 20, 40, 0.95);
+      padding: 15px 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(100, 200, 255, 0.3);
+      max-width: 250px;
+      z-index: 95;
+      animation: slideInRight 0.6s ease;
+    }
+
+    .help-title {
+      font-size: 12px;
+      color: #64c8ff;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .help-item {
+      font-size: 11px;
+      color: #aaa;
+      margin: 5px 0;
+      line-height: 1.4;
+    }
+
+    .help-item strong {
+      color: #64c8ff;
+    }
+
+    /* Animations */
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      #control-panel {
+        min-width: 0;
+        max-width: 100%;
+        right: 20px;
+        left: 20px;
+        top: auto;
+        bottom: 20px;
+        max-height: 250px;
+      }
+
+      #info-panel {
+        width: 100%;
+        right: -100%;
+      }
+
+      #help-panel {
+        max-width: 220px;
+        font-size: 10px;
+      }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(100, 200, 255, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #64c8ff;
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4db8ff;
+    }
   </style>
   <title>Solar System : Explore the 3D Solar System</title>
   <meta name="description"
     content="The Solar System 3D Visualization project is an interactive web-based application that allows users to explore the Solar System in a three-dimensional environment. The project is developed using the Three.js library, which provides powerful tools for creating 3D content on the web. Users can witness the rotation of planets around the Sun and their self-rotation, as well as enjoy the beauty of space in this immersive experience." />
   <meta name="keywords"
     content="three.js, solar system, 3D, space, planets, astronomy, stars, sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, pluto" />
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() {
-      dataLayer.push(arguments);
-    }
-    gtag("js", new Date());
-
-    gtag("config", "G-4J64SC1QY7");
-  </script>
-  <!----------------------------------------------------------------------------->
-  <link rel="icon" type="image/png" href="./image/solar-system.png" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.6/dat.gui.min.js"></script>
+  <link rel="icon" type="image/png" href="/orrery-assets/image/solar-system.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-<div id="planet-name" style="
-    position: absolute;
-    top: 50px;
-    left: 1000px;
-    font-size: 50px;
-    background-color: black;
-    box-shadow: rgb(49, 49, 49);
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    z-index: 1000;
-    background-color: black; 
-    box-shadow: 0 4px 20px rgba(56, 56, 56, 0.5); 
-    border: white solid 3px;
-    border-radius: 20px;
+<!-- Loading Screen -->
+<div id="loading" style="display: block;">
+  <p>🌍 Loading Solar System...</p>
+  <p style="font-size: 16px; margin-top: 20px; color: #aaa;">Initializing 3D visualization</p>
+</div>
 
-"></div>
+<!-- Control Panel -->
+<div id="control-panel">
+  <div class="control-title">🎮 Controls</div>
+  
+  <input type="text" id="search-box" placeholder="🔍 Search planets...">
+  
+  <div id="planet-list"></div>
+  
+  <div class="control-group">
+    <label class="control-label">Animation Speed</label>
+    <input type="range" id="speed-slider" class="control-slider" min="0" max="2" step="0.1" value="1">
+    <div class="slider-value"><span id="speed-value">1.0x</span></div>
+  </div>
 
-<div id="planet-info" style="
-    position: absolute;
-    top: 50px;
-    left: 300px;
-    font-size: 30px; 
-    background-color: black; 
-    box-shadow: 0 4px 20px rgba(56, 56, 56, 0.5); 
-    color: white;
-    padding: 30px; 
-    border-radius: 30px;
-    z-index: 1000;
-    border: white solid 3px;
-"></div>
+  <button class="control-button" id="pause-btn">⏸ Pause Animation</button>
+  <button class="control-button" id="reset-btn">🔄 Reset View</button>
+  <button class="control-button" id="info-btn">ℹ️ Planet Info</button>
+  <button class="control-button" id="zoom-btn">🔍 Zoom to Selection</button>
+  <button class="control-button" id="toggle-labels-btn">🏷️ Toggle Labels</button>
+  <button class="control-button" id="toggle-orbits-btn">⭕ Toggle Orbits</button>
+</div>
 
+<!-- Info Panel -->
+<div id="info-panel">
+  <div class="info-header">
+    <span id="info-planet-name">Select a Planet</span>
+    <button class="close-btn" id="close-info-btn">✕</button>
+  </div>
+  
+  <div class="info-section">
+    <label class="info-label">Diameter</label>
+    <div class="info-value" id="info-diameter">-</div>
+  </div>
+  
+  <div class="info-section">
+    <label class="info-label">Distance from Sun</label>
+    <div class="info-value" id="info-distance">-</div>
+  </div>
+  
+  <div class="info-section">
+    <label class="info-label">Orbital Period</label>
+    <div class="info-value" id="info-period">-</div>
+  </div>
+  
+  <div class="info-section">
+    <label class="info-label">Rotation Speed</label>
+    <div class="info-value" id="info-rotation">-</div>
+  </div>
 
+  <div class="info-section">
+    <label class="info-label">Moons</label>
+    <div class="info-value" id="info-moons">-</div>
+  </div>
 
+  <div class="info-description" id="info-description">
+    Click on a planet to see detailed information
+  </div>
+</div>
 
+<!-- Help Panel -->
+<div id="help-panel">
+  <div class="help-title">⌨️ Keyboard Shortcuts</div>
+  <div class="help-item"><strong>SPACE</strong> - Pause/Play</div>
+  <div class="help-item"><strong>R</strong> - Reset View</div>
+  <div class="help-item"><strong>L</strong> - Toggle Labels</div>
+  <div class="help-item"><strong>O</strong> - Toggle Orbits</div>
+  <div class="help-item"><strong>Arrow Keys</strong> - Rotate View</div>
+  <div class="help-item"><strong>Mouse Wheel</strong> - Zoom</div>
+  <div class="help-item"><strong>Mouse Drag</strong> - Rotate</div>
+</div>
 
-  <script src="solar_system.js" type="module"> </script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.127.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.127.0/examples/jsm/"
+  }
+}
+</script>
+
+<script src="/orrery-assets/solar_system.js" type="module"></script>
 
 </body>
 

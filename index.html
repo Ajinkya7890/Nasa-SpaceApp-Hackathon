@@ -3,21 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-   <!-- <link rel="stylesheet" href="login.css"> -->
-<link rel="stylesheet" href="/assets/style.css">
+    <title>Login - NASA Hackathon</title>
+    <link rel="stylesheet" href="/assets/style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap');
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #000;
+            overflow: hidden;
+        }
+        .back_video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            min-width: 100%;
+            min-height: 100%;
+        }
+        form {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 50px 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 400px;
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        h1 {
+            color: #fff;
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        input[type="text"],
+        input[type="password"],
+        input[type="email"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="email"]:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #007bff;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+        }
+        .error-message {
+            color: #ff6b6b;
+            font-size: 0.85em;
+            margin-top: 5px;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+        input:invalid:focus ~ .error-message,
+        input.has-error ~ .error-message {
+            display: block;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        p {
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            margin-top: 20px;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+        .input-wrapper {
+            position: relative;
+        }
+        .input-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        input[type="text"] ~ .input-icon,
+        input[type="password"] ~ .input-icon {
+            display: none;
+        }
+        input[type="text"]:valid ~ .input-icon,
+        input[type="password"]:valid ~ .input-icon {
+            display: block;
+            color: #28a745;
+        }
+        @media (max-width: 600px) {
+            form {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
 </head>
 <body>
+    <form action="/" method="post" id="loginForm">
+        <h1>🚀 Login</h1>
+        
+        <div class="form-group">
+            <label for="username">Username</label>
+            <div class="input-wrapper">
+                <input 
+                    type="text" 
+                    id="username"
+                    name="username" 
+                    placeholder="Enter username" 
+                    required
+                    minlength="3"
+                    maxlength="50"
+                    autocomplete="username"
+                >
+                <span class="input-icon">✓</span>
+            </div>
+            <div class="error-message">Username must be 3-50 characters</div>
+        </div>
 
-    <form action="/" method="post">
-        <h1>Login</h1>
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrapper">
+                <input 
+                    type="password" 
+                    id="password"
+                    name="password" 
+                    placeholder="Enter password" 
+                    required
+                    minlength="6"
+                    autocomplete="current-password"
+                >
+                <span class="input-icon">✓</span>
+            </div>
+            <div class="error-message">Password must be at least 6 characters</div>
+        </div>
+
         <button type="submit">Login</button>
     </form>
-    <p>Don't have an account? <a href="/register">Register here</a></p>
-     <video autoplay loop muted plays-inline class="back_video">
-      <source src="https://videos.pexels.com/video-files/9940663/9940663-hd_1920_1080_24fps.mp4" type="video/mp4" />
+
+    <p style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10;">
+        Don't have an account? <a href="/register">Register here</a>
+    </p>
+
+    <video autoplay loop muted playsinline class="back_video">
+        <source src="https://videos.pexels.com/video-files/9940663/9940663-hd_1920_1080_24fps.mp4" type="video/mp4" />
     </video>
+
+    <script>
+        // Form validation
+        const form = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+
+        // Real-time validation
+        usernameInput.addEventListener('blur', function() {
+            validateField(this);
+        });
+
+        passwordInput.addEventListener('blur', function() {
+            validateField(this);
+        });
+
+        function validateField(field) {
+            const value = field.value.trim();
+            if (field.id === 'username') {
+                if (value.length < 3 || value.length > 50) {
+                    field.classList.add('has-error');
+                } else {
+                    field.classList.remove('has-error');
+                }
+            }
+            if (field.id === 'password') {
+                if (value.length < 6) {
+                    field.classList.add('has-error');
+                } else {
+                    field.classList.remove('has-error');
+                }
+            }
+        }
+
+        // Form submit validation
+        form.addEventListener('submit', function(e) {
+            validateField(usernameInput);
+            validateField(passwordInput);
+
+            if (usernameInput.classList.contains('has-error') || 
+                passwordInput.classList.contains('has-error')) {
+                e.preventDefault();
+                alert('Please fix the errors in the form');
+            }
+        });
+
+        // Prevent spaces in username
+        usernameInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\s/g, '');
+        });
+    </script>
 </body>
 </html>
