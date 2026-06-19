@@ -169,22 +169,43 @@ function toggleOrbits() {
 function setupPlanetList() {
     const planetNames = Object.keys(planetDatabase);
     const planetList = document.getElementById('planet-list');
-    
+
     planetNames.forEach(name => {
         const item = document.createElement('div');
         item.className = 'planet-item';
         item.textContent = planetDatabase[name].name;
+
         item.onclick = () => {
-            document.querySelectorAll('.planet-item').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.planet-item').forEach(el =>
+                el.classList.remove('selected')
+            );
+
             item.classList.add('selected');
-            const planet = planets.find(p => p.name && p.name.toLowerCase() === name);
+
+            if (name === "sun") {
+
+                selectedPlanet = {
+                    name: "sun",
+                    planet: sun
+                };
+
+                updateInfoPanel(selectedPlanet);
+                return;
+            }
+
+            const planet = planets.find(
+                p => p.name && p.name.toLowerCase() === name
+            );
+
             if (planet) {
                 selectedPlanet = planet;
                 updateInfoPanel(planet);
             }
         };
+
         planetList.appendChild(item);
     });
+
     planetList.style.display = 'block';
 }
 
@@ -209,15 +230,15 @@ async function loadJSONData(url) {
 }
 let planetData = {};
 // Call the function to load your JSON file
-loadJSONData('https://data.nasa.gov/resource/b67r-rgxc.json')
-    .then(data => {
-        console.log(data); // Do something with the loaded data
-        planetData = data; // Store the data in a variable
-        // You can process your JSON data here
-    })
-    .catch(error => {
-        console.error('Error loading JSON data:', error);
-    });
+// loadJSONData('https://data.nasa.gov/resource/b67r-rgxc.json')
+//     .then(data => {
+//         console.log(data); // Do something with the loaded data
+//         planetData = data; // Store the data in a variable
+//         // You can process your JSON data here
+//     })
+//     .catch(error => {
+//         console.error('Error loading JSON data:', error);
+//     });
 
 
 
@@ -269,7 +290,7 @@ async function init() {
 }
 
 // Call the init function
-init();
+// init();
 
 //Creating renderer
 const renderer = new THREE.WebGLRenderer();
@@ -581,16 +602,30 @@ document.getElementById('info-btn').addEventListener('click', () => {
 
 // Zoom to selection button
 document.getElementById('zoom-btn').addEventListener('click', () => {
-    if (selectedPlanet && selectedPlanet.planetObj) {
-        const position = selectedPlanet.planetObj.position;
-        const distance = 40;
+    if (selectedPlanet && selectedPlanet.planet) {
+
+        const worldPosition = new THREE.Vector3();
+        selectedPlanet.planet.getWorldPosition(worldPosition);
+
+        const distance = 20;
+
         camera.position.set(
-            position.x + distance,
-            position.y + distance,
-            position.z + distance
+            worldPosition.x + distance,
+            worldPosition.y + distance,
+            worldPosition.z + distance
         );
-        orbit.target.copy(position);
-        orbit.update();
+
+        orbit.target.copy(worldPosition);
+orbit.update();
+
+document.getElementById('control-panel')
+    .classList.add('hidden');
+
+document.getElementById('show-controls-btn')
+    .style.display = 'block';
+
+        console.log("Zooming to:", worldPosition);
+
     } else {
         alert('Please select a planet first!');
     }
@@ -681,26 +716,26 @@ planets[8].planetObj.add(planets[8].moons[0].moonOrbit); // Adding Charon to Plu
 
 //////////////////////////////////////
 //NOTE - GUI options
-var GUI = dat.gui.GUI;
-const gui = new GUI();
-const options = {
-    "Real view": true,
-    "Show path": true,
-    speed: 1,
-};
-gui.add(options, "Real view").onChange((e) => {
-    ambientLight.intensity = e ? 0 : 0.5;
-});
-gui.add(options, "Show path").onChange((e) => {
-    path_of_planets.forEach((dpath) => {
-        dpath.visible = e;
-    });
-});
-const maxSpeed = new URL(window.location.href).searchParams.get("ms") * 1;
-gui.add(options, "speed", 0, maxSpeed ? maxSpeed : 20);
+// var GUI = dat.gui.GUI;
+// const gui = new GUI();
+// const options = {
+//     "Real view": true,
+//     "Show path": true,
+//     speed: 1,
+// };
+// gui.add(options, "Real view").onChange((e) => {
+//     ambientLight.intensity = e ? 0 : 0.5;
+// });
+// gui.add(options, "Show path").onChange((e) => {
+//     path_of_planets.forEach((dpath) => {
+//         dpath.visible = e;
+//     });
+// });
+// const maxSpeed = new URL(window.location.href).searchParams.get("ms") * 1;
+// gui.add(options, "speed", 0, maxSpeed ? maxSpeed : 20);
 
 //////////////////////////////////////
-const planetNames = [
+const hoverPlanetNames = [
     "Sun",
     "Mercury",
     "Venus",
@@ -755,12 +790,12 @@ function updatePlanetName() {
     if (intersects.length > 0) {
         const planetIndex = planetsWithSun.findIndex(p => p === intersects[0].object);
         if (planetIndex !== -1) {
-            const planetName = planetNames[planetIndex];
+            const planetName = hoverPlanetNames[planetIndex];
             planetNameDiv.textContent = planetName;
             console.log('Planet Name:', planetName);  // Verify planet name
 
              // Use the planetDataa object to get information
-            const planetKey = planetNames[planetIndex].toLowerCase(); // Get the lowercase key for the planet
+            const planetKey = hoverPlanetNames[planetIndex].toLowerCase(); // Get the lowercase key for the planet
             const planetInfo = planetDataa[planetKey]; // Retrieve info from planetDataa
 
        if (planetInfo) {
@@ -808,17 +843,17 @@ const loader = new OBJLoader();
 let rock1, rock2, rock3;
 let asteroidBelt;
 
-loader.load("rocks/Rock1.obj", function (object) {
+loader.load("/orrery-assets/rocks/Rock1.obj", function (object) {
     rock1 = object;
     createAsteroidBelt();
 });
 
-loader.load("rocks/Rock2.obj", function (object) {
+loader.load("/orrery-assets/rocks/Rock2.obj", function (object) {
     rock2 = object;
     createAsteroidBelt();
 });
 
-loader.load("rocks/Rock3.obj", function (object) {
+loader.load("/orrery-assets/rocks/Rock3.obj", function (object) {
     rock3 = object;
     createAsteroidBelt();
 });
@@ -861,6 +896,16 @@ const animate = () => {
 
 
 animate();
+
+document.getElementById('show-controls-btn').addEventListener('click', () => {
+
+    document.getElementById('control-panel')
+        .classList.remove('hidden');
+
+    document.getElementById('show-controls-btn')
+        .style.display = 'none';
+
+});
 
 //////////////////////////////////////
 //Adjust camera on window resize

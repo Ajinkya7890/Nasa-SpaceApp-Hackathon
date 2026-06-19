@@ -41,19 +41,42 @@
     }
 
     /* Control Panel - Top Left */
-    #control-panel {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 100;
-      background: rgba(20, 20, 40, 0.95);
-      padding: 20px;
-      border-radius: 15px;
-      backdrop-filter: blur(10px);
-      border: 2px solid rgba(100, 200, 255, 0.3);
-      min-width: 250px;
-      animation: slideInLeft 0.6s ease;
-    }
+    /* Control Panel - Top Left */
+#control-panel {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+  background: rgba(20, 20, 40, 0.95);
+  padding: 20px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(100, 200, 255, 0.3);
+  min-width: 250px;
+  animation: slideInLeft 0.6s ease;
+
+  transition: transform 0.4s ease;   /* ADD THIS */
+}
+
+#control-panel.hidden {
+  transform: translateX(-100%);
+}
+#show-controls-btn {
+  position: fixed;
+  left: 15px;
+  top: 20px;
+  z-index: 101;
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(20,20,40,0.95);
+  color: #64c8ff;
+  font-size: 24px;
+  cursor: pointer;
+  display: none;
+  border: 2px solid rgba(100, 200, 255, 0.3);
+}
 
     .control-title {
       font-size: 16px;
@@ -390,6 +413,10 @@
   <p style="font-size: 16px; margin-top: 20px; color: #aaa;">Initializing 3D visualization</p>
 </div>
 
+<button id="show-controls-btn">☰</button>
+
+<!-- Control Panel -->
+<div id="control-panel">
 <!-- Control Panel -->
 <div id="control-panel">
   <div class="control-title">🎮 Controls</div>
